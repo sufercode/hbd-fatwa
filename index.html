@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>HBD Fatwa Siskia Al-Hawa</title>
+    
+    <!-- Font Estetik -->
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@300;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Library Eksternal -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <style>
+        :root {
+            --primary: #ff9a9e;
+            --secondary: #fad0c4;
+            --accent: #a18cd1;
+            --text-color: #5d4d68;
+            --glass: rgba(255, 255, 255, 0.7);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            /* Background Animasi Terang & Lembut */
+            background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fbc2eb, #a18cd1);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            height: 100vh;
+            overflow: hidden;
+            color: var(--text-color);
+            user-select: none;
+        }
+
+        /* --- STAGE MANAGEMENT --- */
+        .stage {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+            transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+            z-index: 1;
+        }
+
+        .stage.active {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: all;
+            z-index: 10;
+        }
+
+        /* --- STAGE 1: OPENING --- */
+        .glass-panel {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        .gift-box {
+            font-size: 5rem;
+            cursor: pointer;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
+            animation: bounce 2s infinite ease-in-out;
+            transition: transform 0.3s;
+        }
+        .gift-box:active { transform: scale(0.9) rotate(5deg); }
+        .tap-hint { margin-top: 15px; font-weight: 700; color: #ff6b81; animation: pulse 1.5s infinite; }
+
+        /* --- STAGE 2: CAKE --- */
+        .hbd-title {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #d63384;
+            text-shadow: 2px 2px 0px rgba(255,255,255,0.5);
+            transform: translateY(-30px);
+            opacity: 0;
+            transition: all 1s ease-out;
+        }
+        .hbd-title.show { transform: translateY(0); opacity: 1; }
+
+        .cake-container { position: relative; margin-top: 10px; }
+        .plate {
+            width: 250px; height: 10px;
+            background: #f8f9fa; border-radius: 50%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%);
+        }
+        .cake { position: relative; width: 200px; height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; z-index: 2; }
+        
+        .layer {
+            width: 100%; height: 60px;
+            background: #ff9a9e;
+            border-radius: 15px;
+            position: relative;
+            box-shadow: inset -5px -5px rgba(0,0,0,0.05);
+        }
+        .layer::before {
+            content: ''; position: absolute; top: -5px; width: 100%; height: 10px;
+            background: #fff0f5; border-radius: 10px;
+        }
+        .layer-top {
+            width: 85%; height: 50px;
+            background: #ffb7b2;
+            margin-bottom: -10px; z-index: 2;
+            border-radius: 15px 15px 10px 10px;
+            position: relative;
+        }
+        .icing {
+            position: absolute; top: -10px; width: 105%; left: -2.5%; height: 25px;
+            background: #fff; border-radius: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        /* LILIN */
+        .candle {
+            position: absolute; top: -55px;
+            width: 12px; height: 45px;
+            background: repeating-linear-gradient(45deg, #fff, #fff 5px, #ff6b81 5px, #ff6b81 10px);
+            z-index: 5; border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .flame {
+            position: absolute; top: -30px; left: 50%; transform: translateX(-50%);
+            width: 16px; height: 32px;
+            background: radial-gradient(ellipse at bottom, #ffeb3b, #ff9800);
+            border-radius: 50% 50% 20% 20%;
+            box-shadow: 0 0 10px #ff9800, 0 0 20px #ffeb3b;
+            animation: flicker 0.1s infinite alternate;
+            transition: opacity 0.5s;
+        }
+        .flame.off { opacity: 0; }
+
+        .mic-wrapper { margin-top: 50px; text-align: center; color: #5d4d68; font-weight: 500; }
+        .mic-bar-container {
+            width: 200px; height: 10px; background: rgba(255,255,255,0.5);
+            margin: 10px auto; border-radius: 20px; overflow: hidden;
+            border: 1px solid white;
+        }
+        #mic-bar {
+            width: 0%; height: 100%;
+            background: linear-gradient(90deg, #ff9a9e, #a18cd1);
+            transition: width 0.1s;
+        }
+
+        /* --- STAGE 3: POPUP --- */
+        #stage-popup { background: rgba(0,0,0,0.3); backdrop-filter: blur(5px); }
+        .popup-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2.5rem; border-radius: 25px;
+            text-align: center; width: 85%; max-width: 380px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .popup-card p {
+            font-size: 1.2rem;
+            color: #5d4d68;
+            margin-bottom: 20px;
+        }
+        
+        .btn-group { margin-top: 15px; display: flex; justify-content: center; gap: 15px; }
+        .btn {
+            padding: 12px 28px; border: none; border-radius: 50px;
+            font-weight: 700; font-family: 'Quicksand', sans-serif;
+            cursor: pointer; transition: 0.2s; font-size: 1rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .btn-yes { background: linear-gradient(45deg, #ff9a9e, #fbc2eb); color: white; }
+        .btn-no { background: #f1f2f6; color: #888; }
+        .btn:active { transform: scale(0.95); }
+
+        /* --- STAGE 4: PRANK --- */
+        #stage-prank { background: #2c2c54; color: white; transition: background 1s; }
+        #countdown-text { font-size: 6rem; font-weight: bold; color: #ff6b81; }
+
+        /* --- STAGE 5: SOLAR SYSTEM --- */
+        #stage-solar {
+            /* Warna Langit Malam Deep Purple */
+            background: radial-gradient(circle at center, #2b1055, #100626);
+        }
+        .solar-overlay {
+            position: absolute; bottom: 40px; width: 100%;
+            text-align: center; pointer-events: none;
+        }
+        .solar-msg {
+            background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
+            padding: 12px 24px; border-radius: 50px;
+            display: inline-block; font-size: 0.95rem; color: #fff;
+            border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: 0 0 20px rgba(255, 154, 158, 0.2);
+        }
+        
+        /* Style untuk Popup Planet */
+        #planet-info {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 20px; border-radius: 12px;
+            pointer-events: none; display: none;
+            transform: translate(-50%, -120%);
+            text-align: center; width: 240px; z-index: 100;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            color: #333;
+        }
+        #planet-info::after {
+            content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+            border-width: 8px 8px 0; border-style: solid;
+            border-color: rgba(255, 255, 255, 0.95) transparent transparent transparent;
+        }
+        #planet-info h3 { color: #d63384; margin-bottom: 5px; font-family: 'Quicksand', sans-serif; font-weight: 700; }
+        #planet-info p { font-size: 0.9rem; color: #555; line-height: 1.4; }
+
+        /* KEYFRAMES */
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        @keyframes pulse { 0% { opacity: 0.6; } 100% { opacity: 1; } }
+        @keyframes flicker { 0% { transform: translateX(-50%) scale(1); opacity: 1; } 100% { transform: translateX(-50%) scale(1.1); opacity: 0.9; } }
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <!-- Musik Background -->
+    <audio id="bg-music" loop>
+        <!-- Gunakan link lagu yang valid (Contoh: Lagu Ulang Tahun Instrumental atau Favorit dia) -->
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" type="audio/mp3">
+    </audio>
+
+    <!-- STAGE 1: OPENING -->
+    <div id="stage-opening" class="stage active">
+        <div class="glass-panel">
+            <div class="gift-box" onclick="startJourney()">🎁</div>
+            <div class="tap-hint">Tap kadonya, Fatwa!</div>
+        </div>
+    </div>
+
+    <!-- STAGE 2: CAKE -->
+    <div id="stage-cake" class="stage">
+        <h1 class="hbd-title">Happy Birthday<br>Fatwa Siskia Al-Hawa! 🎀</h1>
+        
+        <div class="cake-container">
+            <div class="plate"></div>
+            <div class="cake">
+                <div class="candle">
+                    <!-- Tidak ada onclick manualBlow() disini, murni mic -->
+                    <div class="flame" id="flame"></div>
+                </div>
+                <div class="layer-top"><div class="icing"></div></div>
+                <div class="layer"></div>
+            </div>
+        </div>
+
+        <div class="mic-wrapper">
+            <div id="mic-status">Izin mikrofon diperlukan... 🎤</div>
+            <div class="mic-bar-container">
+                <div id="mic-bar"></div>
+            </div>
+            <p style="font-size:0.8rem; margin-top:5px; opacity:0.7">Tiup lilinnya yang kuat ya!</p>
+        </div>
+    </div>
+
+    <!-- STAGE 3: POPUP -->
+    <div id="stage-popup" class="stage">
+        <div class="popup-card">
+            <!-- Teks "Satu permintaan?" dihapus -->
+            <p>Mau kado yang lebih spesial lagi gak?</p>
+            <div class="btn-group">
+                <button class="btn btn-yes" onclick="triggerPrank()">Mau Banget!</button>
+                <button class="btn btn-no" onclick="alert('Eits, tombol ini rusak. Harus pilih MAU! 😜')">Gak Dulu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STAGE 4: PRANK -->
+    <div id="stage-prank" class="stage">
+        <div id="countdown-text">5</div>
+        <p style="margin-top: 20px; font-size: 1.2rem;">Hold your breath...</p>
+    </div>
+
+    <!-- STAGE 5: SOLAR SYSTEM (FOTO 2D) -->
+    <div id="stage-solar" class="stage">
+        <div id="canvas-container" style="width: 100%; height: 100%;"></div>
+        
+        <div class="solar-overlay">
+            <div class="solar-msg">👆 Geser & Zoom untuk melihat Kenangan Fatwa ✨</div>
+        </div>
+
+        <div id="planet-info">
+            <h3 id="p-title">Title</h3>
+            <p id="p-desc">Description</p>
+        </div>
+    </div>
+
+    <script>
+        /* --- CONFIG --- */
+        const music = document.getElementById('bg-music');
+        let audioContext, analyser, dataArray, microphone;
+        let isBlowing = false;
+
+        function switchStage(hideId, showId) {
+            const hideEl = document.getElementById(hideId);
+            const showEl = document.getElementById(showId);
+            hideEl.classList.remove('active');
+            setTimeout(() => { showEl.classList.add('active'); }, 600);
+        }
+
+        // --- STAGE 1: JOURNEY START ---
+        function startJourney() {
+            // PLAY MUSIC: Interaksi pertama user menjamin audio berjalan
+            music.volume = 0.5;
+            music.play().then(() => {
+                console.log("Audio started");
+            }).catch(error => {
+                console.warn("Audio play failed, user interaction required.");
+            });
+            
+            switchStage('stage-opening', 'stage-cake');
+            
+            setTimeout(() => {
+                document.querySelector('.hbd-title').classList.add('show');
+                initMic(); // Minta izin mic setelah animasi masuk
+            }, 800);
+        }
+
+        // --- STAGE 2: MICROPHONE ONLY ---
+        function initMic() {
+            const statusEl = document.getElementById('mic-status');
+            
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                statusEl.innerHTML = "Browser ini tidak support Mic 😭<br>Coba pakai Chrome/Safari.";
+                return;
+            }
+
+            statusEl.innerHTML = "Izinkan akses mikrofon ya... 🙏";
+
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    analyser = audioContext.createAnalyser();
+                    microphone = audioContext.createMediaStreamSource(stream);
+                    microphone.connect(analyser);
+                    analyser.fftSize = 256;
+                    dataArray = new Uint8Array(analyser.frequencyBinCount);
+                    
+                    statusEl.innerHTML = "Sekarang tiup lilinnya! 🌬️";
+                    listenMic();
+                })
+                .catch(err => {
+                    console.error(err);
+                    statusEl.innerHTML = "Yah, mic ditolak. Refresh dan izinkan mic ya!";
+                    // Tidak ada fallback click, sesuai permintaan (Strict)
+                });
+        }
+
+        function listenMic() {
+            if (isBlowing) return;
+            requestAnimationFrame(listenMic);
+            analyser.getByteFrequencyData(dataArray);
+            
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+            let avg = sum / dataArray.length;
+
+            // Visualisasi Bar
+            const barWidth = Math.min(avg * 3, 100); 
+            document.getElementById('mic-bar').style.width = barWidth + "%";
+
+            // Threshold Tiupan (Angka 50 biasanya suara tiupan/bising dekat mic)
+            if (avg > 50) { 
+                blowCandle();
+            }
+        }
+
+        function blowCandle() {
+            isBlowing = true;
+            document.getElementById('flame').classList.add('off'); // Api mati
+            document.getElementById('mic-status').innerHTML = "Yeaaay! Make a wish! 🌠";
+            document.getElementById('mic-bar').style.width = "0%";
+            
+            // Confetti
+            const duration = 2500;
+            const end = Date.now() + duration;
+            const colors = ['#ff9a9e', '#fad0c4', '#a18cd1', '#ffffff'];
+
+            (function frame() {
+                confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: colors });
+                confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: colors });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+
+            setTimeout(() => { switchStage('stage-cake', 'stage-popup'); }, 4000);
+        }
+
+        // --- STAGE 3 & 4 ---
+        function triggerPrank() {
+            switchStage('stage-popup', 'stage-prank');
+            
+            const countEl = document.getElementById('countdown-text');
+            let count = 5;
+            
+            const timer = setInterval(() => {
+                count--;
+                countEl.innerText = count;
+                if(count <= 0) {
+                    clearInterval(timer);
+                    countEl.innerText = "❤️";
+                    document.querySelector('#stage-prank p').innerText = "Welcome to your Universe, Fatwa.";
+                    
+                    setTimeout(() => {
+                        switchStage('stage-prank', 'stage-solar');
+                        initSolarSystem();
+                    }, 2000);
+                }
+            }, 1000);
+        }
+
+        // --- STAGE 5: THREE.JS (2D PHOTOS IN 3D SPACE) ---
+        function initSolarSystem() {
+            const container = document.getElementById('canvas-container');
+            
+            const scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x100626, 0.035); 
+
+            const camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 100);
+            camera.position.set(0, 5, 18);
+
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 0.5;
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+            scene.add(ambientLight);
+            const sunLight = new THREE.PointLight(0xff9a9e, 1.5, 80);
+            scene.add(sunLight);
+
+            // Background Stars
+            const starGeo = new THREE.BufferGeometry();
+            const starCount = 3000;
+            const starPos = new Float32Array(starCount * 3);
+            for(let i=0; i<starCount*3; i++) starPos[i] = (Math.random() - 0.5) * 80;
+            starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+            const starMat = new THREE.PointsMaterial({color: 0xffffff, size: 0.1, transparent: true, opacity: 0.8});
+            const stars = new THREE.Points(starGeo, starMat);
+            scene.add(stars);
+
+            // Center Heart (The Sun)
+            const sunGeo = new THREE.SphereGeometry(2, 32, 32);
+            const sunMat = new THREE.MeshStandardMaterial({ color: 0xff9a9e, emissive: 0xff6b81, emissiveIntensity: 0.8 });
+            const sun = new THREE.Mesh(sunGeo, sunMat);
+            scene.add(sun);
+            
+            // Fake Glow
+            const glowGeo = new THREE.SphereGeometry(2.5, 32, 32);
+            const glowMat = new THREE.MeshBasicMaterial({color: 0xff9a9e, transparent: true, opacity: 0.15, side: THREE.BackSide});
+            const glow = new THREE.Mesh(glowGeo, glowMat);
+            scene.add(glow);
+
+            // 2D PHOTO PLANETS
+            const planets = [];
+            const loader = new THREE.TextureLoader();
+
+            // Gunakan gambar random placeholder. Ganti URL ini dengan foto Fatwa nanti.
+            const photos = [
+                'https://picsum.photos/id/1011/300/300', 
+                'https://picsum.photos/id/1025/300/300',
+                'https://picsum.photos/id/1012/300/300',
+                'https://picsum.photos/id/177/300/300'
+            ];
+
+            const planetData = [
+                { size: 2.5, dist: 6, img: photos[0], name: "Adventure", desc: "Setiap petualangan bersamamu adalah kenangan." },
+                { size: 2.2, dist: 9, img: photos[1], name: "Cita-cita", desc: "Semoga semua harapan Fatwa tercapai." },
+                { size: 2.8, dist: 13, img: photos[2], name: "Friendship", desc: "Terima kasih sudah menjadi teman terbaik." },
+                { size: 2.4, dist: 17, img: photos[3], name: "Happiness", desc: "Tetaplah tersenyum ceria setiap hari!" }
+            ];
+
+            planetData.forEach(p => {
+                // Orbit Path (Garis)
+                const pathGeo = new THREE.RingGeometry(p.dist - 0.05, p.dist + 0.05, 64);
+                const pathMat = new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.05, transparent: true, side: THREE.DoubleSide });
+                const path = new THREE.Mesh(pathGeo, pathMat);
+                path.rotation.x = Math.PI / 2;
+                scene.add(path);
+
+                // Group untuk rotasi orbit
+                const parent = new THREE.Group();
+                scene.add(parent);
+
+                // --- MEMBUAT FOTO 2D (PlaneGeometry) ---
+                // Frame Putih (Polaroid Style)
+                const frameGeo = new THREE.PlaneGeometry(p.size + 0.2, p.size + 0.2);
+                const frameMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
+                const frame = new THREE.Mesh(frameGeo, frameMat);
+                
+                // Foto
+                const photoGeo = new THREE.PlaneGeometry(p.size, p.size);
+                const photoMat = new THREE.MeshBasicMaterial({ 
+                    map: loader.load(p.img), 
+                    side: THREE.DoubleSide 
+                });
+                const photo = new THREE.Mesh(photoGeo, photoMat);
+                photo.position.z = 0.02; // Sedikit di depan frame agar tidak flickering
+
+                // Gabungkan Foto ke Frame
+                frame.add(photo);
+                frame.position.x = p.dist;
+                
+                // Masukkan Frame ke Parent (Orbit)
+                parent.add(frame);
+                parent.rotation.y = Math.random() * Math.PI * 2; // Posisi awal random
+
+                planets.push({ mesh: frame, parent: parent, speed: (Math.random() * 0.005) + 0.002, data: p });
+            });
+
+            // Interaction Setup
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+            const infoBox = document.getElementById('planet-info');
+
+            renderer.domElement.addEventListener('pointerdown', (event) => {
+                event.preventDefault();
+                const rect = renderer.domElement.getBoundingClientRect();
+                mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+                
+                raycaster.setFromCamera(mouse, camera);
+                // Cek ntersection dengan Frame foto
+                const intersects = raycaster.intersectObjects(planets.map(p => p.mesh));
+
+                if (intersects.length > 0) {
+                    const obj = intersects[0].object;
+                    // Cari data planet berdasarkan mesh (atau parent dari mesh jika kena foto)
+                    let pObj = planets.find(p => p.mesh === obj);
+                    if(!pObj) pObj = planets.find(p => p.mesh.children.includes(obj)); // Handle jika kena fotonya langsung
+
+                    if(pObj) {
+                        document.getElementById('p-title').innerText = pObj.data.name;
+                        document.getElementById('p-desc').innerText = pObj.data.desc;
+                        infoBox.style.display = 'block';
+                        
+                        // Posisi Popup
+                        const vec = new THREE.Vector3();
+                        pObj.mesh.getWorldPosition(vec);
+                        vec.project(camera);
+                        const x = (vec.x * .5 + .5) * container.clientWidth;
+                        const y = (-(vec.y * .5) + .5) * container.clientHeight;
+                        infoBox.style.left = x + 'px';
+                        infoBox.style.top = (y - 50) + 'px';
+
+                        // Animasi Klik
+                        pObj.mesh.scale.set(1.2, 1.2, 1.2);
+                        setTimeout(() => pObj.mesh.scale.set(1, 1, 1), 300);
+                    }
+                } else {
+                    infoBox.style.display = 'none';
+                }
+            });
+
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update();
+
+                planets.forEach(p => {
+                    // Rotasi Orbit
+                    p.parent.rotation.y += p.speed;
+                    
+                    // BILLBOARD EFFECT: Foto selalu menghadap kamera
+                    // Kita harus merotasi mesh (frame) agar menghadap kamera, tapi tetap di posisi orbitnya
+                    p.mesh.lookAt(camera.position); 
+                });
+
+                stars.rotation.y -= 0.0003;
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            window.addEventListener('resize', () => {
+                const w = container.clientWidth;
+                const h = container.clientHeight;
+                renderer.setSize(w, h);
+                camera.aspect = w / h;
+                camera.updateProjectionMatrix();
+            });
+        }
+    </script>
+</body>
+</html>
