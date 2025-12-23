@@ -131,7 +131,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
         
-        /* LILIN */
         .candle {
             position: absolute; top: -55px;
             width: 12px; height: 45px;
@@ -186,24 +185,27 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
         
-        /* Tombol Yes default-nya abu-abu (disabled look) */
+        /* STATE TOMBOL YES */
+        /* Default: Terkunci (Abu-abu) */
         .btn-yes { 
-            background: #cccccc; 
-            color: #666666; 
-            cursor: not-allowed;
+            background: #dcdcdc; 
+            color: #888; 
+            transform: scale(1);
         }
-        /* Tombol Yes saat sudah aktif */
+        
+        /* Active: Terbuka (Pink Gradient) */
         .btn-yes.active {
             background: linear-gradient(45deg, #ff9a9e, #fbc2eb);
             color: white;
-            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(255, 154, 158, 0.4);
+            animation: pulseBtn 2s infinite;
         }
-
-        .btn-no { background: #f1f2f6; color: #888; }
+        
+        .btn-no { background: #f1f2f6; color: #555; }
         .btn:active { transform: scale(0.95); }
 
         /* --- STAGE 4: PRANK --- */
-        #stage-prank { background: #2c2c54; color: white; transition: background 3s; }
+        #stage-prank { background: #2c2c54; color: white; transition: background 2s; }
         #countdown-text { font-size: 6rem; font-weight: bold; color: #ff6b81; }
 
         /* --- STAGE 5: SOLAR SYSTEM --- */
@@ -240,6 +242,7 @@
         #planet-info h3 { color: #d63384; margin-bottom: 5px; font-family: 'Quicksand', sans-serif; font-weight: 700; }
         #planet-info p { font-size: 0.9rem; color: #555; line-height: 1.4; }
 
+        /* KEYFRAMES */
         @keyframes gradientBG {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
@@ -247,6 +250,7 @@
         }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
         @keyframes pulse { 0% { opacity: 0.6; } 100% { opacity: 1; } }
+        @keyframes pulseBtn { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         @keyframes flicker { 0% { transform: translateX(-50%) scale(1); opacity: 1; } 100% { transform: translateX(-50%) scale(1.1); opacity: 0.9; } }
         @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
@@ -255,7 +259,6 @@
 
     <!-- Musik Background -->
     <audio id="bg-music" loop>
-        <!-- Gunakan link lagu yang valid -->
         <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" type="audio/mp3">
     </audio>
 
@@ -296,7 +299,7 @@
         <div class="popup-card">
             <p>Mau kado gak?</p>
             <div class="btn-group">
-                <!-- Logic tombol diubah di script -->
+                <!-- Logic tombol diatur di script -->
                 <button class="btn btn-yes" id="btn-yes" onclick="handleYesClick()">Mau Banget!</button>
                 <button class="btn btn-no" onclick="handleNoClick()">Gak Dulu</button>
             </div>
@@ -328,7 +331,7 @@
         const music = document.getElementById('bg-music');
         let audioContext, analyser, dataArray, microphone;
         let isBlowing = false;
-        let isYesUnlocked = false; // Status tombol Yes
+        let isYesUnlocked = false; // Status Kunci Tombol
 
         function switchStage(hideId, showId) {
             const hideEl = document.getElementById(hideId);
@@ -419,21 +422,25 @@
             setTimeout(() => { switchStage('stage-cake', 'stage-popup'); }, 4000);
         }
 
-        // --- STAGE 3: LOGIKA TOMBOL & PRANK ---
+        // --- STAGE 3: LOGIC TOMBOL & PRANK ---
         
         function handleNoClick() {
-            alert("Yakin gamau? Padahal udah disiapin loh... 🥺 Yaudah coba klik MAU lagi sekarang!");
-            // Buka tombol Yes
+            alert("Yakin gamau? Padahal udah disiapin loh... 🥺\n\nYaudah deh, coba klik tombol 'Mau Banget' sekarang. Udah dibenerin.");
+            
+            // UNLOCK TOMBOL YES
             isYesUnlocked = true;
             const yesBtn = document.getElementById('btn-yes');
-            yesBtn.classList.add('active'); // Ubah warna jadi pink
+            yesBtn.classList.add('active'); // Ubah visual jadi pink
+            yesBtn.innerText = "MAU BANGET! 😍";
         }
 
         function handleYesClick() {
             if (!isYesUnlocked) {
-                alert("Eits, tombol ini macet! Coba klik tombol 'Gak Dulu' yang di sebelahnya... 😜");
+                // JIKA BELUM KLIK "GAK DULU"
+                alert("Eits, tombol ini error/macet! ❌\nCoba klik tombol 'Gak Dulu' yang di sebelahnya... 😜");
                 return;
             }
+            // JIKA SUDAH UNLOCK
             triggerPrank();
         }
 
@@ -447,25 +454,34 @@
             const timer = setInterval(() => {
                 count--;
                 countEl.innerText = count;
+                
                 if(count <= 0) {
                     clearInterval(timer);
-                    
-                    // --- FASE PRANK "GAJADI DEH" ---
-                    countEl.innerText = "Gajadi deh 😜";
-                    countEl.style.fontSize = "3rem";
                     prankMsg.style.display = 'none';
 
-                    // --- FASE REVEAL ---
+                    // 1. Fase Suspense
+                    countEl.innerText = "Yaaah...";
+                    countEl.style.fontSize = "4rem";
+
+                    // 2. Fase Prank "Gajadi"
                     setTimeout(() => {
-                        countEl.innerText = "Canda deng! ❤️\nWelcome to your Universe!";
-                        countEl.style.fontSize = "2rem";
-                        
+                        countEl.innerText = "Gajadi deh 😜";
+                        countEl.style.fontSize = "4rem";
+
+                        // 3. Fase Reveal
                         setTimeout(() => {
-                            switchStage('stage-prank', 'stage-solar');
-                            initSolarSystem();
-                        }, 2500); // Delay baca teks
-                        
-                    }, 2000); // Delay prank
+                            countEl.innerText = "Canda deng! ❤️\nWelcome to your Universe!";
+                            countEl.style.fontSize = "2rem";
+                            
+                            // 4. Masuk Galaksi
+                            setTimeout(() => {
+                                switchStage('stage-prank', 'stage-solar');
+                                initSolarSystem();
+                            }, 2500); 
+                            
+                        }, 2000); // Durasi teks "Gajadi deh"
+
+                    }, 1500); // Durasi teks "Yaaah..."
                 }
             }, 1000);
         }
@@ -518,7 +534,7 @@
             const planets = [];
             const loader = new THREE.TextureLoader();
 
-            // GANTI FOTO DISINI
+            // GANTI URL FOTO DI SINI
             const photos = [
                 'https://picsum.photos/id/1011/300/300', 
                 'https://picsum.photos/id/1025/300/300',
