@@ -191,7 +191,7 @@
         .btn:active { transform: scale(0.95); }
 
         /* --- STAGE 4: PRANK --- */
-        #stage-prank { background: #2c2c54; color: white; transition: background 1s; }
+        #stage-prank { background: #2c2c54; color: white; transition: background 3s; }
         #countdown-text { font-size: 6rem; font-weight: bold; color: #ff6b81; }
 
         /* --- STAGE 5: SOLAR SYSTEM --- */
@@ -254,13 +254,13 @@
     <div id="stage-opening" class="stage active">
         <div class="glass-panel">
             <div class="gift-box" onclick="startJourney()">🎁</div>
-            <div class="tap-hint">Tap kadonya, Fatwa!</div>
+            <div class="tap-hint">Coba pencet fa</div>
         </div>
     </div>
 
     <!-- STAGE 2: CAKE -->
     <div id="stage-cake" class="stage">
-        <h1 class="hbd-title">Happy Birthday<br>Fatwa Siskia Al-Hawa! 🎀</h1>
+        <h1 class="hbd-title">Cie Ada Yang HBD Nih<br>Fatwa Siskia Al-Hawa! 🎀</h1>
         
         <div class="cake-container">
             <div class="plate"></div>
@@ -287,7 +287,7 @@
     <div id="stage-popup" class="stage">
         <div class="popup-card">
             <!-- Teks "Satu permintaan?" dihapus -->
-            <p>Mau kado yang lebih spesial lagi gak?</p>
+            <p>Mau kado gak?</p>
             <div class="btn-group">
                 <button class="btn btn-yes" onclick="triggerPrank()">Mau Banget!</button>
                 <button class="btn btn-no" onclick="alert('Eits, tombol ini rusak. Harus pilih MAU! 😜')">Gak Dulu</button>
@@ -297,9 +297,30 @@
 
     <!-- STAGE 4: PRANK -->
     <div id="stage-prank" class="stage">
-        <div id="countdown-text">5</div>
-        <p style="margin-top: 20px; font-size: 1.2rem;">Hold your breath...</p>
-    </div>
+  <div id="countdown-text">5</div>
+  <p style="margin-top: 20px; font-size: 1.2rem;">Hold your breath...</p>
+</div>
+
+<script>
+  let countdown = 5; // angka mulai hitung mundur
+  const countdownText = document.getElementById('countdown-text');
+  const stage = document.getElementById('stage-prank');
+
+  const interval = setInterval(() => {
+    countdown--;
+    if (countdown > 0) {
+      countdownText.textContent = countdown;
+    } else {
+      clearInterval(interval);
+      // Ganti teks setelah hitung mundur selesai
+      stage.innerHTML = `
+        <p style="font-size:1.5rem; color:red;">Gajadi deh 😛</p>
+        <p style="margin-top: 10px;">Canda aja!</p>
+      `;
+    }
+  }, 1000); // 1000 ms = 1 detik
+</script>
+
 
     <!-- STAGE 5: SOLAR SYSTEM (FOTO 2D) -->
     <div id="stage-solar" class="stage">
