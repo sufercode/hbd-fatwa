@@ -31,6 +31,7 @@
 
         body {
             font-family: 'Quicksand', sans-serif;
+            /* Background Animasi Terang & Lembut */
             background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fbc2eb, #a18cd1);
             background-size: 400% 400%;
             animation: gradientBG 15s ease infinite;
@@ -131,8 +132,9 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
         
+        /* LILIN */
         .candle {
-            position: absolute; top: -55px;
+            position: absolute; top: 0px;
             width: 12px; height: 45px;
             background: repeating-linear-gradient(45deg, #fff, #fff 5px, #ff6b81 5px, #ff6b81 10px);
             z-index: 5; border-radius: 4px;
@@ -184,32 +186,17 @@
             cursor: pointer; transition: 0.2s; font-size: 1rem;
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
-        
-        /* STATE TOMBOL YES */
-        /* Default: Terkunci (Abu-abu) */
-        .btn-yes { 
-            background: #dcdcdc; 
-            color: #888; 
-            transform: scale(1);
-        }
-        
-        /* Active: Terbuka (Pink Gradient) */
-        .btn-yes.active {
-            background: linear-gradient(45deg, #ff9a9e, #fbc2eb);
-            color: white;
-            box-shadow: 0 5px 20px rgba(255, 154, 158, 0.4);
-            animation: pulseBtn 2s infinite;
-        }
-        
-        .btn-no { background: #f1f2f6; color: #555; }
+        .btn-yes { background: linear-gradient(45deg, #ff9a9e, #fbc2eb); color: white; }
+        .btn-no { background: #f1f2f6; color: #888; }
         .btn:active { transform: scale(0.95); }
 
         /* --- STAGE 4: PRANK --- */
-        #stage-prank { background: #2c2c54; color: white; transition: background 2s; }
+        #stage-prank { background: #2c2c54; color: white; transition: background 3s; }
         #countdown-text { font-size: 6rem; font-weight: bold; color: #ff6b81; }
 
         /* --- STAGE 5: SOLAR SYSTEM --- */
         #stage-solar {
+            /* Warna Langit Malam Deep Purple */
             background: radial-gradient(circle at center, #2b1055, #100626);
         }
         .solar-overlay {
@@ -224,6 +211,7 @@
             box-shadow: 0 0 20px rgba(255, 154, 158, 0.2);
         }
         
+        /* Style untuk Popup Planet */
         #planet-info {
             position: absolute;
             background: rgba(255, 255, 255, 0.95);
@@ -250,7 +238,6 @@
         }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
         @keyframes pulse { 0% { opacity: 0.6; } 100% { opacity: 1; } }
-        @keyframes pulseBtn { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         @keyframes flicker { 0% { transform: translateX(-50%) scale(1); opacity: 1; } 100% { transform: translateX(-50%) scale(1.1); opacity: 0.9; } }
         @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     </style>
@@ -259,7 +246,8 @@
 
     <!-- Musik Background -->
     <audio id="bg-music" loop>
-        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" type="audio/mp3">
+        <!-- Gunakan link lagu yang valid (Contoh: Lagu Ulang Tahun Instrumental atau Favorit dia) -->
+        <source src="https://files.catbox.moe/bdq7hm.mp3" type="audio/mp3">
     </audio>
 
     <!-- STAGE 1: OPENING -->
@@ -278,6 +266,7 @@
             <div class="plate"></div>
             <div class="cake">
                 <div class="candle">
+                    <!-- Tidak ada onclick manualBlow() disini, murni mic -->
                     <div class="flame" id="flame"></div>
                 </div>
                 <div class="layer-top"><div class="icing"></div></div>
@@ -297,11 +286,11 @@
     <!-- STAGE 3: POPUP -->
     <div id="stage-popup" class="stage">
         <div class="popup-card">
+            <!-- Teks "Satu permintaan?" dihapus -->
             <p>Mau kado gak?</p>
             <div class="btn-group">
-                <!-- Logic tombol diatur di script -->
-                <button class="btn btn-yes" id="btn-yes" onclick="handleYesClick()">Mau Banget!</button>
-                <button class="btn btn-no" onclick="handleNoClick()">Gak Dulu</button>
+                <button class="btn btn-yes" onclick="triggerPrank()">Mau Banget!</button>
+                <button class="btn btn-no" onclick="alert('Eits, tombol ini rusak. Harus pilih MAU! 😜')">Gak Dulu</button>
             </div>
         </div>
     </div>
@@ -331,7 +320,6 @@
         const music = document.getElementById('bg-music');
         let audioContext, analyser, dataArray, microphone;
         let isBlowing = false;
-        let isYesUnlocked = false; // Status Kunci Tombol
 
         function switchStage(hideId, showId) {
             const hideEl = document.getElementById(hideId);
@@ -342,6 +330,7 @@
 
         // --- STAGE 1: JOURNEY START ---
         function startJourney() {
+            // PLAY MUSIC: Interaksi pertama user menjamin audio berjalan
             music.volume = 0.5;
             music.play().then(() => {
                 console.log("Audio started");
@@ -353,7 +342,7 @@
             
             setTimeout(() => {
                 document.querySelector('.hbd-title').classList.add('show');
-                initMic();
+                initMic(); // Minta izin mic setelah animasi masuk
             }, 800);
         }
 
@@ -383,6 +372,7 @@
                 .catch(err => {
                     console.error(err);
                     statusEl.innerHTML = "Yah, mic ditolak. Refresh dan izinkan mic ya!";
+                    // Tidak ada fallback click, sesuai permintaan (Strict)
                 });
         }
 
@@ -395,9 +385,11 @@
             for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
             let avg = sum / dataArray.length;
 
+            // Visualisasi Bar
             const barWidth = Math.min(avg * 3, 100); 
             document.getElementById('mic-bar').style.width = barWidth + "%";
 
+            // Threshold Tiupan (Angka 50 biasanya suara tiupan/bising dekat mic)
             if (avg > 50) { 
                 blowCandle();
             }
@@ -405,10 +397,11 @@
 
         function blowCandle() {
             isBlowing = true;
-            document.getElementById('flame').classList.add('off');
+            document.getElementById('flame').classList.add('off'); // Api mati
             document.getElementById('mic-status').innerHTML = "Yeaaay! Make a wish! 🌠";
             document.getElementById('mic-bar').style.width = "0%";
             
+            // Confetti
             const duration = 2500;
             const end = Date.now() + duration;
             const colors = ['#ff9a9e', '#fad0c4', '#a18cd1', '#ffffff'];
@@ -422,66 +415,25 @@
             setTimeout(() => { switchStage('stage-cake', 'stage-popup'); }, 4000);
         }
 
-        // --- STAGE 3: LOGIC TOMBOL & PRANK ---
-        
-        function handleNoClick() {
-            alert("Yakin gamau? Padahal udah disiapin loh... 🥺\n\nYaudah deh, coba klik tombol 'Mau Banget' sekarang. Udah dibenerin.");
-            
-            // UNLOCK TOMBOL YES
-            isYesUnlocked = true;
-            const yesBtn = document.getElementById('btn-yes');
-            yesBtn.classList.add('active'); // Ubah visual jadi pink
-            yesBtn.innerText = "MAU BANGET! 😍";
-        }
-
-        function handleYesClick() {
-            if (!isYesUnlocked) {
-                // JIKA BELUM KLIK "GAK DULU"
-                alert("Eits, tombol ini error/macet! ❌\nCoba klik tombol 'Gak Dulu' yang di sebelahnya... 😜");
-                return;
-            }
-            // JIKA SUDAH UNLOCK
-            triggerPrank();
-        }
-
+        // --- STAGE 3 & 4 ---
         function triggerPrank() {
             switchStage('stage-popup', 'stage-prank');
             
             const countEl = document.getElementById('countdown-text');
-            const prankMsg = document.querySelector('#stage-prank p');
             let count = 5;
             
             const timer = setInterval(() => {
                 count--;
                 countEl.innerText = count;
-                
                 if(count <= 0) {
                     clearInterval(timer);
-                    prankMsg.style.display = 'none';
-
-                    // 1. Fase Suspense
-                    countEl.innerText = "Yaaah...";
-                    countEl.style.fontSize = "4rem";
-
-                    // 2. Fase Prank "Gajadi"
+                    countEl.innerText = "❤️";
+                    document.querySelector('#stage-prank p').innerText = "Welcome to your Universe, Fatwa.";
+                    
                     setTimeout(() => {
-                        countEl.innerText = "Gajadi deh 😜";
-                        countEl.style.fontSize = "4rem";
-
-                        // 3. Fase Reveal
-                        setTimeout(() => {
-                            countEl.innerText = "Canda deng! ❤️\nWelcome to your Universe!";
-                            countEl.style.fontSize = "2rem";
-                            
-                            // 4. Masuk Galaksi
-                            setTimeout(() => {
-                                switchStage('stage-prank', 'stage-solar');
-                                initSolarSystem();
-                            }, 2500); 
-                            
-                        }, 2000); // Durasi teks "Gajadi deh"
-
-                    }, 1500); // Durasi teks "Yaaah..."
+                        switchStage('stage-prank', 'stage-solar');
+                        initSolarSystem();
+                    }, 2000);
                 }
             }, 1000);
         }
@@ -506,11 +458,13 @@
             controls.autoRotate = true;
             controls.autoRotateSpeed = 0.5;
 
+            // Lights
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
             scene.add(ambientLight);
             const sunLight = new THREE.PointLight(0xff9a9e, 1.5, 80);
             scene.add(sunLight);
 
+            // Background Stars
             const starGeo = new THREE.BufferGeometry();
             const starCount = 3000;
             const starPos = new Float32Array(starCount * 3);
@@ -520,11 +474,13 @@
             const stars = new THREE.Points(starGeo, starMat);
             scene.add(stars);
 
+            // Center Heart (The Sun)
             const sunGeo = new THREE.SphereGeometry(2, 32, 32);
             const sunMat = new THREE.MeshStandardMaterial({ color: 0xff9a9e, emissive: 0xff6b81, emissiveIntensity: 0.8 });
             const sun = new THREE.Mesh(sunGeo, sunMat);
             scene.add(sun);
             
+            // Fake Glow
             const glowGeo = new THREE.SphereGeometry(2.5, 32, 32);
             const glowMat = new THREE.MeshBasicMaterial({color: 0xff9a9e, transparent: true, opacity: 0.15, side: THREE.BackSide});
             const glow = new THREE.Mesh(glowGeo, glowMat);
@@ -534,12 +490,12 @@
             const planets = [];
             const loader = new THREE.TextureLoader();
 
-            // GANTI URL FOTO DI SINI
+            // Gunakan gambar random placeholder. Ganti URL ini dengan foto Fatwa nanti.
             const photos = [
-                'https://picsum.photos/id/1011/300/300', 
-                'https://picsum.photos/id/1025/300/300',
-                'https://picsum.photos/id/1012/300/300',
-                'https://picsum.photos/id/177/300/300'
+                'https://ibb.co.com/B5RFTJTk', 
+                'https://ibb.co.com/NdnjJ1Wg',
+                'https://ibb.co.com/MDwMFSyH',
+                'https://ibb.co.com/0VzTm4V1'
             ];
 
             const planetData = [
@@ -550,36 +506,44 @@
             ];
 
             planetData.forEach(p => {
+                // Orbit Path (Garis)
                 const pathGeo = new THREE.RingGeometry(p.dist - 0.05, p.dist + 0.05, 64);
                 const pathMat = new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.05, transparent: true, side: THREE.DoubleSide });
                 const path = new THREE.Mesh(pathGeo, pathMat);
                 path.rotation.x = Math.PI / 2;
                 scene.add(path);
 
+                // Group untuk rotasi orbit
                 const parent = new THREE.Group();
                 scene.add(parent);
 
+                // --- MEMBUAT FOTO 2D (PlaneGeometry) ---
+                // Frame Putih (Polaroid Style)
                 const frameGeo = new THREE.PlaneGeometry(p.size + 0.2, p.size + 0.2);
                 const frameMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
                 const frame = new THREE.Mesh(frameGeo, frameMat);
                 
+                // Foto
                 const photoGeo = new THREE.PlaneGeometry(p.size, p.size);
                 const photoMat = new THREE.MeshBasicMaterial({ 
                     map: loader.load(p.img), 
                     side: THREE.DoubleSide 
                 });
                 const photo = new THREE.Mesh(photoGeo, photoMat);
-                photo.position.z = 0.02;
+                photo.position.z = 0.02; // Sedikit di depan frame agar tidak flickering
 
+                // Gabungkan Foto ke Frame
                 frame.add(photo);
                 frame.position.x = p.dist;
                 
+                // Masukkan Frame ke Parent (Orbit)
                 parent.add(frame);
-                parent.rotation.y = Math.random() * Math.PI * 2;
+                parent.rotation.y = Math.random() * Math.PI * 2; // Posisi awal random
 
                 planets.push({ mesh: frame, parent: parent, speed: (Math.random() * 0.005) + 0.002, data: p });
             });
 
+            // Interaction Setup
             const raycaster = new THREE.Raycaster();
             const mouse = new THREE.Vector2();
             const infoBox = document.getElementById('planet-info');
@@ -591,18 +555,21 @@
                 mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
                 
                 raycaster.setFromCamera(mouse, camera);
+                // Cek ntersection dengan Frame foto
                 const intersects = raycaster.intersectObjects(planets.map(p => p.mesh));
 
                 if (intersects.length > 0) {
                     const obj = intersects[0].object;
+                    // Cari data planet berdasarkan mesh (atau parent dari mesh jika kena foto)
                     let pObj = planets.find(p => p.mesh === obj);
-                    if(!pObj) pObj = planets.find(p => p.mesh.children.includes(obj));
+                    if(!pObj) pObj = planets.find(p => p.mesh.children.includes(obj)); // Handle jika kena fotonya langsung
 
                     if(pObj) {
                         document.getElementById('p-title').innerText = pObj.data.name;
                         document.getElementById('p-desc').innerText = pObj.data.desc;
                         infoBox.style.display = 'block';
                         
+                        // Posisi Popup
                         const vec = new THREE.Vector3();
                         pObj.mesh.getWorldPosition(vec);
                         vec.project(camera);
@@ -611,6 +578,7 @@
                         infoBox.style.left = x + 'px';
                         infoBox.style.top = (y - 50) + 'px';
 
+                        // Animasi Klik
                         pObj.mesh.scale.set(1.2, 1.2, 1.2);
                         setTimeout(() => pObj.mesh.scale.set(1, 1, 1), 300);
                     }
@@ -622,10 +590,16 @@
             function animate() {
                 requestAnimationFrame(animate);
                 controls.update();
+
                 planets.forEach(p => {
+                    // Rotasi Orbit
                     p.parent.rotation.y += p.speed;
+                    
+                    // BILLBOARD EFFECT: Foto selalu menghadap kamera
+                    // Kita harus merotasi mesh (frame) agar menghadap kamera, tapi tetap di posisi orbitnya
                     p.mesh.lookAt(camera.position); 
                 });
+
                 stars.rotation.y -= 0.0003;
                 renderer.render(scene, camera);
             }
